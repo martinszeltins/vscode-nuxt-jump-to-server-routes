@@ -1,0 +1,58 @@
+{
+    "name": "nuxt-jump-to-server-routes",
+    "displayName": "Nuxt Jump to Server Routes",
+    "description": "Jump to Nuxt server routes",
+    "icon": "images/icon.png",
+    "license": "MIT",
+    "version": "1.0.0",
+    "publisher": "MartinsZeltins",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/martinszeltins/vscode-nuxt-jump-to-server-routes"
+    },
+    "engines": {
+      "vscode": "^1.88.0"
+    },
+    "categories": [
+      "Other"
+    ],
+    "activationEvents": [
+        "onLanguage:javascript",
+        "onLanguage:typescript",
+        "onLanguage:vue"
+    ],
+    "main": "./dist/extension.js",
+    "contributes": {
+      "commands": [
+        {
+          "command": "nuxt-jump-to-server-routes.openFileDialog",
+          "title": "Open File Dialog for Nuxt Route"
+        }
+      ]
+    },
+    "scripts": {
+      "vscode:prepublish": "pnpm run package",
+      "compile": "webpack",
+      "watch": "webpack --watch",
+      "package": "webpack --mode production --devtool hidden-source-map",
+      "compile-tests": "tsc -p . --outDir out",
+      "watch-tests": "tsc -p . -w --outDir out",
+      "pretest": "pnpm run compile-tests && pnpm run compile && pnpm run lint",
+      "lint": "eslint src --ext ts",
+      "test": "vscode-test"
+    },
+    "devDependencies": {
+      "@types/vscode": "^1.89.0",
+      "@types/mocha": "^10.0.6",
+      "@types/node": "18.x",
+      "@typescript-eslint/eslint-plugin": "^7.7.1",
+      "@typescript-eslint/parser": "^7.7.1",
+      "eslint": "^8.57.0",
+      "typescript": "^5.4.5",
+      "ts-loader": "^9.5.1",
+      "webpack": "^5.91.0",
+      "webpack-cli": "^5.1.4",
+      "@vscode/test-cli": "^0.0.8",
+      "@vscode/test-electron": "^2.3.9"
+    }
+}
