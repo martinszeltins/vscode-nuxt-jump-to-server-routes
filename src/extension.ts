@@ -70,7 +70,9 @@ class LinkProvider implements vscode.DocumentLinkProvider {
             );
 
             const filePath = this.getPHPFilePath('query', queryName);
-            const documentLink = new vscode.DocumentLink(linkRange, vscode.Uri.parse(`command:nuxt-jump-to-server-routes.openPHPMethod?${encodeURIComponent(JSON.stringify(filePath))}`));
+            const methodName = this.extractMethodName(queryName);
+            const fileAndMethod = `${filePath}@${methodName}`
+            const documentLink = new vscode.DocumentLink(linkRange, vscode.Uri.parse(`command:nuxt-jump-to-server-routes.openPHPMethod?${encodeURIComponent(JSON.stringify(fileAndMethod))}`));
             documentLinks.push(documentLink);
         }
 
@@ -86,7 +88,9 @@ class LinkProvider implements vscode.DocumentLinkProvider {
             );
         
             const filePath = this.getPHPFilePath('mutation', mutationName);
-            const documentLink = new vscode.DocumentLink(linkRange, vscode.Uri.parse(`command:nuxt-jump-to-server-routes.openPHPMethod?${encodeURIComponent(JSON.stringify(filePath))}`));
+            const methodName = this.extractMethodName(mutationName);
+            const fileAndMethod = `${filePath}@${methodName}`
+            const documentLink = new vscode.DocumentLink(linkRange, vscode.Uri.parse(`command:nuxt-jump-to-server-routes.openPHPMethod?${encodeURIComponent(JSON.stringify(fileAndMethod))}`));
             documentLinks.push(documentLink);
         }
 
@@ -106,6 +110,15 @@ class LinkProvider implements vscode.DocumentLinkProvider {
         const providerName = name.charAt(0).toUpperCase() + name.slice(1).replace(/([A-Z])/g, ' $1').split(' ')[0] + 'Provider.php';
         return `${baseDir}${providerName}`;
     }
+
+    private extractMethodName(name: string): string {
+        const methodMatch = name.match(/[a-z]+|[A-Z][a-z]*/g);
+        if (methodMatch) {
+            methodMatch.shift();
+            return methodMatch.map((part, index) => index === 0 ? part.toLowerCase() : part.charAt(0).toUpperCase() + part.slice(1)).join('');
+        }
+        return name;
+    }
 }
 
 async function openQuickOpenWithSelection(query: string) {
@@ -113,7 +126,19 @@ async function openQuickOpenWithSelection(query: string) {
      * Accept the first item in the quick open list because that is the file we want to open.
      * We need to wait for a few milliseconds between each command to ensure that the quick open list is populated.
      */
-    await vscode.commands.executeCommand('workbench.action.quickOpen', query);
+
+    // If query contains the "@" symbol, let's extract the part before and after the at. the part before will be filePath and the part after we will call method
+
+    let filePath = query;
+    let method = '';
+
+    if (query.includes('@')) {
+        const splitQuery = query.split('@');
+        filePath = splitQuery[0];
+        method = splitQuery[1];
+    }
+
+    await vscode.commands.executeCommand('workbench.action.quickOpen', filePath);
     await new Promise(resolve => setTimeout(resolve, 20));
     await vscode.commands.executeCommand('workbench.action.acceptSelectedQuickOpenItem');
     await new Promise(resolve => setTimeout(resolve, 100));
@@ -122,6 +147,11 @@ async function openQuickOpenWithSelection(query: string) {
     await vscode.commands.executeCommand('workbench.action.acceptSelectedQuickOpenItem');
     await new Promise(resolve => setTimeout(resolve, 200));
     await vscode.commands.executeCommand('workbench.action.acceptSelectedQuickOpenItem');
+
+    // If we also have a method, then after opening the file, lets also jump to the method
+    if (method) {
+        await vscode.commands.executeCommand('workbench.action.quickOpen', `@${method}`);
+    }
 }
 
 export function deactivate() {}
